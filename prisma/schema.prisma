@@ -11,3 +11,12 @@ generator client {
 datasource db {
   provider = "sqlite"
 }
+
+model Transaction {
+  id  String  @id @default(uuid())
+  title String
+  amount  Decimal
+  createdAt DateTime  @default(now())
+
+  @@map("transactions")
+}
