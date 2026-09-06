@@ -24,7 +24,23 @@ export async function transactionsRoutes(app: FastifyInstance) {
             }
         });
 
-        return reply.send(transaction);
+        return reply.send({
+            transaction
+        });
+    });
+
+    app.get("/summary", async (request, reply) => {
+        const summary = await prisma.transaction.aggregate({
+            _sum: {
+                amount: true,
+            }
+        });
+
+        const amount = summary._sum;
+
+        return reply.send({
+            summary: amount
+        });
     });
 
     app.post("/", async (request, reply) => {
