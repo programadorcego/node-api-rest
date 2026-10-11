@@ -1,27 +1,37 @@
 import { prisma } from "@/lib/prisma";
+import { checkSessionIdExists } from "@/middlewares/check-session-id-exists";
 import { FastifyInstance } from "fastify";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 export async function transactionsRoutes(app: FastifyInstance) {
-    app.get("/", async (request, reply) => {
-        const transactions = await prisma.transaction.findMany();
+    app.get("/", { preHandler: checkSessionIdExists }, async (request, reply) => {
+        const sessionId = request.cookies.sessionId;
+
+        const transactions = await prisma.transaction.findMany({
+            where: {
+                sessionId,
+            },
+        });
 
         return reply.send({
             transactions
         });
     });
 
-    app.get("/:id", async (request, reply) => {
+    app.get("/:id", { preHandler: checkSessionIdExists }, async (request, reply) => {
         const transactionParamSchema = z.object({
             id: z.string().uuid(),
         });
 
         const { id } = transactionParamSchema.parse(request.params);
 
+        const sessionId = request.cookies.sessionId;
+
         const transaction = await prisma.transaction.findFirst({
             where: {
                 id,
+                sessionId,
             }
         });
 
@@ -30,8 +40,14 @@ export async function transactionsRoutes(app: FastifyInstance) {
         });
     });
 
-    app.get("/summary", async (request, reply) => {
+    app.get("/summary", { preHandler: checkSessionIdExists }, async (request, reply) => {
+        const sessionId = request.cookies.sessionId;
+
         const summary = await prisma.transaction.aggregate({
+            where: {
+                sessionId,
+            },
+            
             _sum: {
                 amount: true,
             }
