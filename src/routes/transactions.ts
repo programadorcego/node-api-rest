@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { FastifyInstance } from "fastify";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 export async function transactionsRoutes(app: FastifyInstance) {
@@ -44,6 +45,17 @@ export async function transactionsRoutes(app: FastifyInstance) {
     });
 
     app.post("/", async (request, reply) => {
+        let sessionId = request.cookies.sesssionId;
+
+        if (!sessionId) {
+            sessionId = randomUUID();
+
+            reply.setCookie("sessionId", sessionId, {
+                path: "/",
+                maxAge: 60 * 60 * 24 * 7 // Duração do cookie de 7 dias em segundos
+            });
+        }
+
         const createTransactionBodySchema = z.object({
             title: z.string(),
             amount: z.number(),
@@ -56,6 +68,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
             data: {
                 title,
                 amount: type === "credit" ? amount : amount * -1,
+                sessionId,
             },
         });
 
