@@ -5,6 +5,10 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 export async function transactionsRoutes(app: FastifyInstance) {
+    app.addHook("preHandler", async (request) => {
+console.log(`Method: ${request.method} URL: ${request.url}`);
+    });
+
     app.get("/", { preHandler: checkSessionIdExists }, async (request, reply) => {
         const sessionId = request.cookies.sessionId;
 
@@ -47,7 +51,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
             where: {
                 sessionId,
             },
-            
+
             _sum: {
                 amount: true,
             }
