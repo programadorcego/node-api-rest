@@ -65,7 +65,7 @@ console.log(`Method: ${request.method} URL: ${request.url}`);
     });
 
     app.post("/", async (request, reply) => {
-        let sessionId = request.cookies.sesssionId;
+        let sessionId = request.cookies.sessionId;
 
         if (!sessionId) {
             sessionId = randomUUID();
